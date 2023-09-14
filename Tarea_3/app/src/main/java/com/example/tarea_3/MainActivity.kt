@@ -1,6 +1,7 @@
 package com.example.tarea_3
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
@@ -60,7 +61,6 @@ class MainActivity : AppCompatActivity() {
         tipoAlmacen = sharedPreferences.getString("tipoLectura", "").toString()
         val primeraVez: Boolean = sharedPreferences.getBoolean("primera", true)
 
-        Toast.makeText(this, " " + primeraVez, Toast.LENGTH_SHORT).show()
         if (primeraVez){
             mostrarOpcionesGuardado()
             with(sharedPreferences.edit()) {
@@ -70,13 +70,13 @@ class MainActivity : AppCompatActivity() {
         }
         else{
             if (tipoAlmacen.equals("SD")){
+                Toast.makeText(this, "Cargando datos", Toast.LENGTH_SHORT).show()
                 leerExterno()
             }
             else if (tipoAlmacen.equals("INTERN")) {
+                Toast.makeText(this, "Cargando datos", Toast.LENGTH_SHORT).show()
                 leerArchivoInterno()
             }
-            //Llama a cargar los datos
-            Toast.makeText(this, "Cargando datos", Toast.LENGTH_SHORT).show()
         }
 
         listViewExample()
@@ -94,7 +94,6 @@ class MainActivity : AppCompatActivity() {
 
                 mostrarDialog()
 
-                Toast.makeText(this, "Elemento de búsqueda seleccionado", Toast.LENGTH_SHORT).show()
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -102,7 +101,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun listViewExample() {
-        val nombres = arrayOf("Juan", "María", "Carlos", "Luisa", "Ana")
 
         val listView: ListView = findViewById(R.id.eventos)
 
@@ -120,13 +118,8 @@ class MainActivity : AppCompatActivity() {
                 position: Int,
                 id: Long
             ) {
-                val nombreSeleccionado = nombres[position]
-                // Muestra un Toast con el nombre seleccionado
-                Toast.makeText(
-                    this@MainActivity,
-                    "Nombre seleccionado: $nombreSeleccionado",
-                    Toast.LENGTH_SHORT
-                ).show()
+                val nombreSeleccionado = listEvents[position]
+                callActivity2(nombreSeleccionado)
             }
         }
     }
@@ -229,7 +222,7 @@ class MainActivity : AppCompatActivity() {
             val outputStreamWriter = OutputStreamWriter(openFileOutput(filename, MODE_PRIVATE))
             outputStreamWriter.write(eventosJson)
             outputStreamWriter.close()
-            Toast.makeText(this@MainActivity, "Done", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@MainActivity, "Evento Guardado", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -258,8 +251,6 @@ class MainActivity : AppCompatActivity() {
             for (evento in listaEventos) {
                 listEvents.add(evento.nombre)
                 listJSONEvents.add(evento)
-                // Aquí puedes acceder a los campos del objeto Evento
-                Toast.makeText(this@MainActivity, "Nombre del Evento: ${evento.nombre}\nDescripción: ${evento.descripcion}\nFecha: ${evento.fecha}", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -307,11 +298,42 @@ class MainActivity : AppCompatActivity() {
             for (evento in listaEventos) {
                 listEvents.add(evento.nombre)
                 listJSONEvents.add(evento)
-                // Aquí puedes acceder a los campos del objeto Evento
-                Toast.makeText(this@MainActivity, "Nombre del Evento: ${evento.nombre}\nDescripción: ${evento.descripcion}\nFecha: ${evento.fecha}", Toast.LENGTH_SHORT).show()
             }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+    }
+
+    private fun buscarEventoPorNombre(nombre: String): Evento? {
+
+        for (evento in listJSONEvents) {
+            if (evento.nombre == nombre) {
+                return evento
+            }
+        }
+        return null // Si no se encuentra el evento, devuelve null
+    }
+
+    fun callActivity2(nombreSeleccionado: String) {
+        // Crear un Intent para iniciar la Activity2
+        val intent = Intent(this, MainActivity2::class.java)
+
+        val eventoSeleccionado = buscarEventoPorNombre(nombreSeleccionado)
+
+        if(eventoSeleccionado != null){
+            // Agrega los datos del evento como extras en el Intent
+            intent.putExtra("nombre", eventoSeleccionado.nombre)
+            intent.putExtra("descripcion", eventoSeleccionado.descripcion)
+            intent.putExtra("fecha", eventoSeleccionado.fecha)
+        }
+        else{
+            // Agrega los datos del evento como extras en el Intent
+            intent.putExtra("nombre", "a")
+            intent.putExtra("descripcion", "b")
+            intent.putExtra("fecha", "c")
+        }
+
+        // Iniciar la Activity2 utilizando el Intent
+        startActivity(intent)
     }
 }
